@@ -1,0 +1,8 @@
+{
+  "git.ignoreLimitWarning": true,
+  "auto-close-tag.disableOnLanguage": [],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "json.schemas": [],
+  "editor.formatOnSave": true,
+  "prettier.endOfLine": "lf"
+}
