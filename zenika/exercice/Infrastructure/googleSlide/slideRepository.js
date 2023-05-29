@@ -1,40 +1,61 @@
 const { logger } = require("../../logger");
-const {
-  copySlide,
-  getNewSlidePagesElements,
-  updateCopySlide,
-} = require("./slideWrapper");
+const { getNewSlidePagesElements, sendRequest } = require("./slideWrapper");
 const {
   TRAINING_WITH_US,
   TRAINING_WITH_US_GREEN,
   FORMEZ_VOUS,
+  QUOI_DE_NEUF,
 } = require("../../constante/constantes");
+const { v4: uuidv4 } = require("uuid");
+
+const presentationTrainingId = process.env.PRESENTATION_FILE_TRAINING_ID;
+const presentationTalksId = process.env.PRESENTATION_FILE_TALKS_ID;
+const trainWithUsSlideId = process.env.SLIDE_TEMPLATE_TRAIN_WITH_US_ID;
+const formezVousSlideId = process.env.SLIDE_TEMPLATE_FORMEZ_VOUS_ID;
+const trainWithUsGreenSlideId = process.env.SLIDE_TRAIN_WITH_US_GREEN_ID;
+
+const getSuccessMessage = (template) => {
+  const presentationId = getIdOftheFilePresentation(template);
+  return {
+    message: "Created !",
+    link: "https://docs.google.com/presentation/d/" + presentationId + "/",
+  };
+};
+
+const getIdOftheFilePresentation = (template) => {
+  let presentationId = "";
+
+  if (template === TRAINING_WITH_US || TRAINING_WITH_US_GREEN || FORMEZ_VOUS)
+    presentationId = presentationTrainingId;
+
+  // if (template === TRAINING_WITH_US_GREEN)
+  //   presentationId = presentationTrainingId;
+
+  // if (template === FORMEZ_VOUS) presentationId = presentationTrainingId;
+
+  if (template === QUOI_DE_NEUF) presentationId = presentationTalksId;
+
+  return presentationId;
+};
 
 const getIdForTheFirstImageToReplace = (template, getNewSlide) => {
-  let idOfTheFirstImageToReplace;
-  console.log(getNewSlide);
-  if (template === TRAINING_WITH_US)
+  let idOfTheFirstImageToReplace = "";
+  if (template === TRAINING_WITH_US || TRAINING_WITH_US_GREEN)
     idOfTheFirstImageToReplace = getNewSlide[8].objectId;
-
-  if (template === TRAINING_WITH_US_GREEN)
-    idOfTheFirstImageToReplace = getNewSlide[9].objectId;
 
   if (template === FORMEZ_VOUS)
     idOfTheFirstImageToReplace = getNewSlide[9].objectId;
+
   return idOfTheFirstImageToReplace;
 };
 
 const getIdOfTheSecondImageToReplace = (template, getNewSlide) => {
-  let idOfTheSecondImageToReplace;
-  if (template === TRAINING_WITH_US_GREEN)
-    idOfTheSecondImageToReplace = getNewSlide[9].objectId;
-
-  if (template === TRAINING_WITH_US)
+  let idOfTheSecondImageToReplace = "";
+  if (template === TRAINING_WITH_US_GREEN || TRAINING_WITH_US)
     idOfTheSecondImageToReplace = getNewSlide[9].objectId;
 
   if (template === FORMEZ_VOUS)
     idOfTheSecondImageToReplace = getNewSlide[9].objectId;
-
   return idOfTheSecondImageToReplace;
 };
 
@@ -70,16 +91,47 @@ const replaceExistingImageRequest = (
 };
 
 const getCopySlideId = async (template) => {
+  const newIdPage = uuidv4();
+  const requests = [];
+
+  if (template === TRAINING_WITH_US)
+    requests.push({
+      duplicateObject: {
+        objectId: trainWithUsSlideId,
+        objectIds: { [trainWithUsSlideId]: newIdPage },
+      },
+    });
+
+  if (template === TRAINING_WITH_US_GREEN)
+    requests.push({
+      duplicateObject: {
+        objectId: trainWithUsGreenSlideId,
+        objectIds: { [trainWithUsGreenSlideId]: newIdPage },
+      },
+    });
+
+  if (template === FORMEZ_VOUS)
+    requests.push({
+      duplicateObject: {
+        objectId: formezVousSlideId,
+        objectIds: { [formezVousSlideId]: newIdPage },
+      },
+    });
+
   try {
-    return await copySlide(template);
+    await sendRequest(requests, getIdOftheFilePresentation(template));
+    return newIdPage;
   } catch (error) {
-    logger.error(error.message);
+    logger.error({ message: error.message });
   }
 };
 
-const getCopySlidePageElements = async (newSlideId) => {
+const getCopySlidePageElements = async (newSlideId, template) => {
   try {
-    return await getNewSlidePagesElements(newSlideId);
+    return await getNewSlidePagesElements(
+      newSlideId,
+      getIdOftheFilePresentation(template)
+    );
   } catch (error) {
     logger.error({ message: error.message });
   }
@@ -104,14 +156,17 @@ const updateNewCopySlide = async (
     request.push(
       replaceExistingImageRequest(imagesUrls, idFirstImage, idSecondImage)
     );
-    return await updateCopySlide(request);
+    console.log("hello request", request);
+    return await sendRequest(request, getIdOftheFilePresentation(template));
   } catch (error) {
     logger.error({ message: error.message });
   }
 };
 
 module.exports = {
+  getIdOftheFilePresentation,
   getCopySlideId,
   getCopySlidePageElements,
   updateNewCopySlide,
+  getSuccessMessage,
 };

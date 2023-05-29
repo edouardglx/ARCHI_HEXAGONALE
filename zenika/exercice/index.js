@@ -10,6 +10,11 @@ const { SlideService } = require("./Domaine/slideService");
 const { DriveService } = require("./Domaine/driveService");
 const googleSlideRepository = require("./Infrastructure/googleSlide/slideRepository");
 const googleDriveRepository = require("./Infrastructure/googleDrive/driveRepository");
+const {
+  TRAINING_WITH_US,
+  TRAINING_WITH_US_GREEN,
+  FORMEZ_VOUS,
+} = require("./constante/constantes");
 
 app.get("/", (req, res) => {
   try {
@@ -19,8 +24,9 @@ app.get("/", (req, res) => {
   }
 });
 
-app.post("/training", async (req, res) => {
+app.post("/training/trainwithus", async (req, res) => {
   const training = req.body;
+  const template = TRAINING_WITH_US;
   try {
     const driveServiceRepository = googleDriveRepository;
     const driveService = new DriveService(driveServiceRepository);
@@ -31,6 +37,7 @@ app.post("/training", async (req, res) => {
 
     const response = await slideService.createSlides(
       training,
+      template,
       undefined,
       imageUrls
     );
@@ -40,6 +47,49 @@ app.post("/training", async (req, res) => {
   }
 });
 
-app.listen(4001, () => {
-  console.log("server has started on port 4001");
+app.post("/training/trainwithusgreen", async (req, res) => {
+  const training = req.body;
+  const template = TRAINING_WITH_US_GREEN;
+  try {
+    const driveServiceRepository = googleDriveRepository;
+    const driveService = new DriveService(driveServiceRepository);
+    const imageUrls = await driveService.getUrls();
+
+    const slideServiceRepository = googleSlideRepository;
+    const slideService = new SlideService(slideServiceRepository);
+    const response = await slideService.createSlides(
+      training,
+      template,
+      undefined,
+      imageUrls
+    );
+    res.send(response).status(200);
+  } catch (error) {
+    logger.error({ message: `${error}` });
+  }
+});
+
+app.post("/training/formezvous", async (req, res) => {
+  const training = req.body;
+  const template = FORMEZ_VOUS;
+  try {
+    // const driveServiceRepository = googleDriveRepository;
+    // const driveService = new DriveService(driveServiceRepository);
+    // const imageUrls = await driveService.getUrls();
+    // const slideServiceRepository = googleSlideRepository;
+    // const slideService = new SlideService(slideServiceRepository);
+    // const response = await slideService.createSlides(
+    //   training,
+    //   undefined,
+    //   imageUrls
+    // );
+    // res.send(response).status(200);
+    res.send("route utilisé");
+  } catch (error) {
+    logger.error({ message: `${error}` });
+  }
+});
+
+app.listen(3007, () => {
+  console.log("server has started on port 3007");
 });

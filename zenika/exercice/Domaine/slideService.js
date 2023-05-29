@@ -5,10 +5,8 @@ class SlideService {
     this.slideServiceRepository = slideServiceRepository;
   }
 
-  async createSlides(training, talks, imagesUrls) {
-    const { events, template } = training;
-
-    if (!this.verifyTraining(events) && events && imagesUrls)
+  async createSlides(training, template, talks, imagesUrls) {
+    if (!this.verifyTraining(training) && training && imagesUrls && template)
       throw new Error("wrong format of training for the template");
     try {
       const idTemplate = await this.slideServiceRepository.getCopySlideId(
@@ -17,22 +15,23 @@ class SlideService {
       logger.verbose({
         message: `id received for the slide template :${idTemplate}`,
       });
-
+      console.log("id template++>", idTemplate);
       if (idTemplate) {
         const copySlidePageElements =
           await this.slideServiceRepository.getCopySlidePageElements(
-            idTemplate
+            idTemplate,
+            template
           );
         logger.verbose({
           message: `copy slide Elements received :${copySlidePageElements}`,
         });
-        const updateNewSlide =
-          await this.slideServiceRepository.updateNewCopySlide(
-            template,
-            copySlidePageElements,
-            imagesUrls
-          );
-        return updateNewSlide;
+        console.log("element pages", copySlidePageElements);
+        await this.slideServiceRepository.updateNewCopySlide(
+          template,
+          copySlidePageElements,
+          imagesUrls
+        );
+        return this.slideServiceRepository.getSuccessMessage(template);
       }
     } catch (error) {
       logger.error({ message: error.message });
@@ -75,11 +74,11 @@ class SlideService {
     // return this.slideServiceRepository.getSuccessMessage();
   }
 
-  verifyTraining(events) {
-    if (!Array.isArray(events) || events.length <= 0) {
+  verifyTraining(training) {
+    if (!Array.isArray(training) || training.length <= 0) {
       return false;
     }
-    return events.some(
+    return training.some(
       ({ date, universe, eventName }) =>
         Boolean(date) && Boolean(universe) && Boolean(eventName)
     );
