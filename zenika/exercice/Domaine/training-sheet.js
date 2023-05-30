@@ -1,6 +1,6 @@
 const {
   getTrainingsService,
-} = require("../Infrastructure/googleSheet/sheetSpi");
+} = require("../Infrastructure/googleSheet/sheetWrapper");
 const { logger } = require("../logger");
 
 const getTrainingSheet = async (res) => {

@@ -28,11 +28,6 @@ const getIdOftheFilePresentation = (template) => {
   if (template === TRAINING_WITH_US || TRAINING_WITH_US_GREEN || FORMEZ_VOUS)
     presentationId = presentationTrainingId;
 
-  // if (template === TRAINING_WITH_US_GREEN)
-  //   presentationId = presentationTrainingId;
-
-  // if (template === FORMEZ_VOUS) presentationId = presentationTrainingId;
-
   if (template === QUOI_DE_NEUF) presentationId = presentationTalksId;
 
   return presentationId;

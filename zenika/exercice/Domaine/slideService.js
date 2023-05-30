@@ -1,4 +1,5 @@
 const { logger } = require("../logger");
+const trainingOrganized = require("./TrainingOrganized");
 
 class SlideService {
   constructor(slideServiceRepository) {
@@ -9,13 +10,15 @@ class SlideService {
     if (!this.verifyTraining(training) && training && imagesUrls && template)
       throw new Error("wrong format of training for the template");
     try {
+      const dataOrganised = trainingOrganized.trainingDataOrganized(training);
+
       const idTemplate = await this.slideServiceRepository.getCopySlideId(
         template
       );
       logger.verbose({
         message: `id received for the slide template :${idTemplate}`,
       });
-      console.log("id template++>", idTemplate);
+
       if (idTemplate) {
         const copySlidePageElements =
           await this.slideServiceRepository.getCopySlidePageElements(
@@ -25,7 +28,7 @@ class SlideService {
         logger.verbose({
           message: `copy slide Elements received :${copySlidePageElements}`,
         });
-        console.log("element pages", copySlidePageElements);
+
         await this.slideServiceRepository.updateNewCopySlide(
           template,
           copySlidePageElements,
